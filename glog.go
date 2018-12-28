@@ -98,16 +98,18 @@ type severity int32 // sync/atomic int32
 // A message written to a high-severity log file is also written to each
 // lower-severity log file.
 const (
-	infoLog severity = iota
+	debugLog severity = iota
+	infoLog
 	warningLog
 	errorLog
 	fatalLog
-	numSeverity = 4
+	numSeverity = 5
 )
 
-const severityChar = "IWEF"
+const severityChar = "DIWEF"
 
 var severityName = []string{
+	debugLog:   "DEBUG",
 	infoLog:    "INFO",
 	warningLog: "WARNING",
 	errorLog:   "ERROR",
@@ -1049,6 +1051,30 @@ func (v Verbose) Infof(format string, args ...interface{}) {
 	}
 }
 
+// Debug logs to the DEBUG log.
+// Arguments are handled in the manner of fmt.Print; a newline is appended if missing.
+func Debug(args ...interface{}) {
+	logging.print(debugLog, args...)
+}
+
+// DebugDepth acts as Debug but uses depth to determine which call frame to log.
+// DebugDepth(0, "msg") is the same as Debug("msg").
+func DebugDepth(depth int, args ...interface{}) {
+	logging.printDepth(debugLog, depth, args...)
+}
+
+// Infoln logs to the DEBUG log.
+// Arguments are handled in the manner of fmt.Println; a newline is appended if missing.
+func Debugln(args ...interface{}) {
+	logging.println(debugLog, args...)
+}
+
+// Infof logs to the DEBUG log.
+// Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
+func Debugf(format string, args ...interface{}) {
+	logging.printf(debugLog, format, args...)
+}
+
 // Info logs to the INFO log.
 // Arguments are handled in the manner of fmt.Print; a newline is appended if missing.
 func Info(args ...interface{}) {
@@ -1097,7 +1123,7 @@ func Warningf(format string, args ...interface{}) {
 	logging.printf(warningLog, format, args...)
 }
 
-// Error logs to the ERROR, WARNING, and INFO logs.
+// Error logs to the ERROR, WARNING, INFO, and DEBUG logs.
 // Arguments are handled in the manner of fmt.Print; a newline is appended if missing.
 func Error(args ...interface{}) {
 	logging.print(errorLog, args...)
@@ -1109,19 +1135,19 @@ func ErrorDepth(depth int, args ...interface{}) {
 	logging.printDepth(errorLog, depth, args...)
 }
 
-// Errorln logs to the ERROR, WARNING, and INFO logs.
+// Errorln logs to the ERROR, WARNING, INFO, and DEBUG logs.
 // Arguments are handled in the manner of fmt.Println; a newline is appended if missing.
 func Errorln(args ...interface{}) {
 	logging.println(errorLog, args...)
 }
 
-// Errorf logs to the ERROR, WARNING, and INFO logs.
+// Errorf logs to the ERROR, WARNING, INFO, and DEBUG logs.
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Errorf(format string, args ...interface{}) {
 	logging.printf(errorLog, format, args...)
 }
 
-// Fatal logs to the FATAL, ERROR, WARNING, and INFO logs,
+// Fatal logs to the FATAL, ERROR, WARNING, INFO, and DEBUG logs,
 // including a stack trace of all running goroutines, then calls os.Exit(255).
 // Arguments are handled in the manner of fmt.Print; a newline is appended if missing.
 func Fatal(args ...interface{}) {
@@ -1134,14 +1160,14 @@ func FatalDepth(depth int, args ...interface{}) {
 	logging.printDepth(fatalLog, depth, args...)
 }
 
-// Fatalln logs to the FATAL, ERROR, WARNING, and INFO logs,
+// Fatalln logs to the FATAL, ERROR, WARNING, INFO, and DEBUG logs,
 // including a stack trace of all running goroutines, then calls os.Exit(255).
 // Arguments are handled in the manner of fmt.Println; a newline is appended if missing.
 func Fatalln(args ...interface{}) {
 	logging.println(fatalLog, args...)
 }
 
-// Fatalf logs to the FATAL, ERROR, WARNING, and INFO logs,
+// Fatalf logs to the FATAL, ERROR, WARNING, INFO, and DEBUG logs,
 // including a stack trace of all running goroutines, then calls os.Exit(255).
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Fatalf(format string, args ...interface{}) {
@@ -1152,7 +1178,7 @@ func Fatalf(format string, args ...interface{}) {
 // It allows Exit and relatives to use the Fatal logs.
 var fatalNoStacks uint32
 
-// Exit logs to the FATAL, ERROR, WARNING, and INFO logs, then calls os.Exit(1).
+// Exit logs to the FATAL, ERROR, WARNING, INFO and DEBUG logs, then calls os.Exit(1).
 // Arguments are handled in the manner of fmt.Print; a newline is appended if missing.
 func Exit(args ...interface{}) {
 	atomic.StoreUint32(&fatalNoStacks, 1)
@@ -1166,13 +1192,13 @@ func ExitDepth(depth int, args ...interface{}) {
 	logging.printDepth(fatalLog, depth, args...)
 }
 
-// Exitln logs to the FATAL, ERROR, WARNING, and INFO logs, then calls os.Exit(1).
+// Exitln logs to the FATAL, ERROR, WARNING, INFO, and DEBUG logs, then calls os.Exit(1).
 func Exitln(args ...interface{}) {
 	atomic.StoreUint32(&fatalNoStacks, 1)
 	logging.println(fatalLog, args...)
 }
 
-// Exitf logs to the FATAL, ERROR, WARNING, and INFO logs, then calls os.Exit(1).
+// Exitf logs to the FATAL, ERROR, WARNING, INFO, and DEBUG logs, then calls os.Exit(1).
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Exitf(format string, args ...interface{}) {
 	atomic.StoreUint32(&fatalNoStacks, 1)
