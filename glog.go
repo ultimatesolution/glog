@@ -400,6 +400,7 @@ type flushSyncWriter interface {
 func init() {
 	flag.BoolVar(&logging.toStderr, "logtostderr", false, "log to standard error instead of files")
 	flag.BoolVar(&logging.alsoToStderr, "alsologtostderr", false, "log to standard error as well as files")
+	flag.Var(&logging.level, "level", "log level")
 	flag.Var(&logging.verbosity, "v", "log level for V logs")
 	flag.Var(&logging.stderrThreshold, "stderrthreshold", "logs at or above this threshold go to stderr")
 	flag.Var(&logging.vmodule, "vmodule", "comma-separated list of pattern=N settings for file-filtered logging")
@@ -410,6 +411,10 @@ func init() {
 
 	logging.setVState(0, nil, false)
 	go logging.flushDaemon()
+}
+
+func SetLevel(level Level) {
+	logging.level = severity(level)
 }
 
 // Flush flushes all pending log I/O.
@@ -455,6 +460,7 @@ type loggingT struct {
 	// safely using atomic.LoadInt32.
 	vmodule   moduleSpec // The state of the -vmodule flag.
 	verbosity Level      // V logging level, the value of the -v flag/
+	level severity // logging level, the value of -level flag
 }
 
 // buffer holds a byte Buffer for reuse. The zero value is ready for use.
@@ -1054,96 +1060,112 @@ func (v Verbose) Infof(format string, args ...interface{}) {
 // Debug logs to the DEBUG log.
 // Arguments are handled in the manner of fmt.Print; a newline is appended if missing.
 func Debug(args ...interface{}) {
+	if logging.level > debugLog { return }
 	logging.print(debugLog, args...)
 }
 
 // DebugDepth acts as Debug but uses depth to determine which call frame to log.
 // DebugDepth(0, "msg") is the same as Debug("msg").
 func DebugDepth(depth int, args ...interface{}) {
+	if logging.level > debugLog { return }
 	logging.printDepth(debugLog, depth, args...)
 }
 
 // Infoln logs to the DEBUG log.
 // Arguments are handled in the manner of fmt.Println; a newline is appended if missing.
 func Debugln(args ...interface{}) {
+	if logging.level > debugLog { return }
 	logging.println(debugLog, args...)
 }
 
 // Infof logs to the DEBUG log.
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Debugf(format string, args ...interface{}) {
+	if logging.level > debugLog { return }
 	logging.printf(debugLog, format, args...)
 }
 
 // Info logs to the INFO log.
 // Arguments are handled in the manner of fmt.Print; a newline is appended if missing.
 func Info(args ...interface{}) {
+	if logging.level > infoLog { return }
 	logging.print(infoLog, args...)
 }
 
 // InfoDepth acts as Info but uses depth to determine which call frame to log.
 // InfoDepth(0, "msg") is the same as Info("msg").
 func InfoDepth(depth int, args ...interface{}) {
+	if logging.level > infoLog { return }
 	logging.printDepth(infoLog, depth, args...)
 }
 
 // Infoln logs to the INFO log.
 // Arguments are handled in the manner of fmt.Println; a newline is appended if missing.
 func Infoln(args ...interface{}) {
+	if logging.level > infoLog { return }
 	logging.println(infoLog, args...)
 }
 
 // Infof logs to the INFO log.
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Infof(format string, args ...interface{}) {
+	if logging.level > infoLog { return }
 	logging.printf(infoLog, format, args...)
 }
 
 // Warning logs to the WARNING and INFO logs.
 // Arguments are handled in the manner of fmt.Print; a newline is appended if missing.
 func Warning(args ...interface{}) {
+	if logging.level > warningLog { return }
 	logging.print(warningLog, args...)
 }
 
 // WarningDepth acts as Warning but uses depth to determine which call frame to log.
 // WarningDepth(0, "msg") is the same as Warning("msg").
 func WarningDepth(depth int, args ...interface{}) {
+	if logging.level > warningLog { return }
 	logging.printDepth(warningLog, depth, args...)
 }
 
 // Warningln logs to the WARNING and INFO logs.
 // Arguments are handled in the manner of fmt.Println; a newline is appended if missing.
 func Warningln(args ...interface{}) {
+	if logging.level > warningLog { return }
 	logging.println(warningLog, args...)
 }
 
 // Warningf logs to the WARNING and INFO logs.
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Warningf(format string, args ...interface{}) {
+	if logging.level > warningLog { return }
 	logging.printf(warningLog, format, args...)
 }
 
 // Error logs to the ERROR, WARNING, INFO, and DEBUG logs.
 // Arguments are handled in the manner of fmt.Print; a newline is appended if missing.
 func Error(args ...interface{}) {
+	if logging.level > errorLog { return }
 	logging.print(errorLog, args...)
 }
 
 // ErrorDepth acts as Error but uses depth to determine which call frame to log.
 // ErrorDepth(0, "msg") is the same as Error("msg").
 func ErrorDepth(depth int, args ...interface{}) {
+	if logging.level > errorLog { return }
 	logging.printDepth(errorLog, depth, args...)
 }
 
 // Errorln logs to the ERROR, WARNING, INFO, and DEBUG logs.
 // Arguments are handled in the manner of fmt.Println; a newline is appended if missing.
 func Errorln(args ...interface{}) {
+	if logging.level > errorLog { return }
 	logging.println(errorLog, args...)
 }
 
 // Errorf logs to the ERROR, WARNING, INFO, and DEBUG logs.
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Errorf(format string, args ...interface{}) {
+	if logging.level > errorLog { return }
 	logging.printf(errorLog, format, args...)
 }
 
